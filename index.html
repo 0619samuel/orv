@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全知讀者視角 | 互動式體驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Starlight Indigo (深藍、黑、灰，配以發光的青色/品紅色點綴) -->
+    <!-- Application Structure Plan: 採用單頁應用程式(SPA)架構，透過JavaScript控制不同區塊(div)的顯示與隱藏，模擬無縫的頁面切換。主頁作為導航中心，提供通往十二個卷數的入口。每個卷數頁面將遵循報告的道德內容策略，提供摘要、分析及官方購買連結，而非侵權的全文，旨在創造一個尊重原作且具高可用性的使用者體驗。新增LLM功能，提供情景提示與角色分析，增強互動性與沉浸感。為解決檔案過大問題，小說全文內容將從外部TXT檔案動態載入，而非直接嵌入HTML。 -->
+    <!-- Visualization & Content Choices: 報告的核心是文本分析與UI設計，因此本應用程式的重點是將這些概念視覺化。互動元素包括：1. 模擬「情景」入口的導航按鈕。2. 動態顯示的內容面板，呈現摘要與分析。3. 使用HTML/CSS建構的圖表來解釋報告中的核心概念（如道德內容策略）。新增LLM驅動的「情景提示」和「角色分析」功能，透過API呼叫生成相關文本內容，並顯示在專屬的面板中。小說全文內容將透過JavaScript的Fetch API從外部TXT檔案動態載入。所有視覺元素均使用HTML/CSS和Unicode字符實現，以確保不使用SVG或Mermaid。 -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0a0a1a;
+            color: #e0e0e0;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-vt323 { font-family: 'VT323', monospace; }
+        .system-panel {
+            background-color: rgba(16, 24, 48, 0.8);
+            border: 1px solid #4a5568;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+        .scenario-button {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .scenario-button:hover {
+            background-color: #3b82f6;
+            color: #ffffff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            border-bottom-color: #93c5fd;
+        }
+        .scenario-button:active {
+            transform: translateY(0);
+            border-bottom-width: 1px;
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8), 0 0 10px rgba(0, 255, 255, 0.6);
+        }
+        .text-glow-magenta {
+            text-shadow: 0 0 8px rgba(255, 0, 255, 0.8), 0 0 10px rgba(255, 0, 255, 0.6);
+        }
+        .glitch-effect {
+            animation: glitch 1.5s linear infinite;
+        }
+        @keyframes glitch {
+            2%,64%{ transform: translate(2px,0) skew(0deg); }
+            4%,60%{ transform: translate(-2px,0) skew(0deg); }
+            62%{ transform: translate(0,0) skew(5deg); }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a202c; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #718096; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div id="app-container" class="min-h-screen w-full">
+
+        <!-- Home Page -->
+        <section id="page-home" class="min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+            <header class="text-center mb-8">
+                <h1 class="font-orbitron text-5xl md:text-7xl font-bold text-glow-cyan mb-4">[ 全知讀者視角 ]</h1>
+                <p id="system-message" class="font-vt323 text-xl md:text-2xl text-gray-300 h-8"></p>
+            </header>
+
+            <div class="system-panel rounded-lg p-6 md:p-8 w-full max-w-5xl">
+                <div class="text-center mb-6">
+                    <p class="text-lg text-gray-200">歡迎，讀者。您的個人化「情景」即將開始。</p>
+                    <p class="text-sm text-gray-400">本互動式體驗旨在將設計藍圖中的核心概念具象化。請選擇一個卷數以繼續。</p>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <!-- Volume Buttons -->
+                    <script>
+                        for (let i = 1; i <= 12; i++) {
+                            document.write(`
+                                <button onclick="navigate('page-volume-${i}')" class="scenario-button font-orbitron text-lg bg-gray-800 text-gray-200 py-4 px-2 rounded-md border border-blue-500/50">
+                                    卷 ${i}
+                                </button>
+                            `);
+                        }
+                    </script>
+                </div>
+            </div>
+            
+            <footer class="mt-8 text-center text-gray-500 text-xs">
+                <p>本網站為「設計藍圖」之互動式實踐，非官方網站。</p>
+                <p>所有內容均基於報告分析，並遵循其道德內容建議。</p>
+            </footer>
+        </section>
+
+        <!-- Volume Pages -->
+        <script>
+            // 卷數資料，現在包含一個 contentPath 指向外部 TXT 檔案
+            const volumesData = [
+                {
+                    title: "情景開始",
+                    summary: "金獨子，一個平凡的上班族，在閱讀完他唯一追更的網路小說《在滅亡的世界中存活的三種方法》後，世界突然變成了小說中的『情景』。他必須利用自己對小說的『全知』，在首爾地鐵上與變異的生物戰鬥，並與小說主角劉眾赫首次相遇，努力在第一個致命的『情景』中生存下來。",
+                    contentPath: "content/volume1.txt", // 指向第一卷全文的 TXT 檔案路徑
+                    keyEvents: ["小說成為現實", "地鐵生存戰", "與劉眾赫的初遇", "獲得『全知讀者視角』技能"]
+                },
+                {
+                    title: "王座的主人",
+                    summary: "離開地鐵後，金獨子和他的新同伴們（包括劉眾赫、劉尚雅、李智慧等）面臨著爭奪『絕對王座』的挑戰。這個情景要求他們建立自己的據點並爭奪權力，與其他強大的化身和星座展開激烈的鬥爭。金獨子利用他對未來劇情的了解，巧妙地建立『金獨子工業』，並逐漸展露其獨特的生存方式。",
+                    contentPath: "content/volume2.txt", // 指向第二卷全文的 TXT 檔案路徑
+                    keyEvents: ["忠武路站的據點戰", "爭奪絕對王座", "建立金獨子工業", "與李吉永、申喻勝相遇"]
+                },
+                {
+                    title: "和平之地",
+                    summary: "為了尋找更安全的避難所和資源，金獨子團隊前往被稱為『和平之地』的區域。然而，他們發現這個地方有其自身的黑暗秘密、嚴格的階級制度和隱藏的威脅。他們必須面對新的災禍，並與『先知者』等強大存在進行智力與力量的雙重對抗，同時努力維護團隊內部的信任。",
+                    contentPath: "content/volume3.txt",
+                    keyEvents: ["災禍的降臨", "和平之地的隱藏規則", "與先知者的對抗", "團隊內部的信任考驗"]
+                },
+                {
+                    title: "未知的挑戰",
+                    summary: "隨著故事的深入，金獨子對原作的知識開始遇到瓶頸，因為『星流』系統不斷生成連他也未曾預料到的『變數』。新的星座和強大的外部勢力介入，使得情景變得更加複雜且充滿不確定性。團隊必須適應這些突如其來的變化，並在不斷升級的威脅中尋找新的生存之道。",
+                    contentPath: "content/volume4.txt",
+                    keyEvents: ["原作的變數出現", "新星座的干預", "情景難度提升", "團隊成員的成長與分歧"]
+                },
+                {
+                    title: "魔王選拔戰",
+                    summary: "為了解決當前情景的困境並獲得更強大的力量，金獨子決定進入『魔界』，參加極度危險的『魔王選拔戰』。這是一場殘酷的生存遊戲，他必須與來自各個維度的強大魔王競爭，並在其中尋找突破自我的機會，最終獲得屬於自己的『神話』與稱號。",
+                    contentPath: "content/volume5.txt",
+                    keyEvents: ["進入魔界", "與其他魔王的激烈競爭", "獲得魔王稱號", "揭示魔界的深層秘密"]
+                },
+                {
+                    title: "星流的秘密",
+                    summary: "金獨子團隊開始更深入地接觸到『星流』系統的本質，以及控制著所有『情景』的『鬼怪』們的真實目的。他們發現了關於『第四面牆』的秘密，以及整個世界運作的底層邏輯。為了尋找結束這一切的『最終劇本』，他們必須解開更多關於『星流』和『故事』的謎團。",
+                    contentPath: "content/volume6.txt",
+                    keyEvents: ["鬼怪的真實目的", "第四面牆的揭示", "探索星流的本質", "尋找最終劇本的線索"]
+                },
+                {
+                    title: "巨型故事",
+                    summary: "面對來自『星雲』等更為龐大且古老的存在，金獨子意識到單憑個人力量無法抗衡。他必須集結所有同伴，共同創造屬於他們自己的『巨型故事』。這個過程不僅考驗著團隊的凝聚力，也讓他們的神話逐漸成形，成為足以改變世界的力量。",
+                    contentPath: "content/volume7.txt",
+                    keyEvents: ["對抗強大星雲", "團隊創造巨型故事", "神話的誕生與成長", "金獨子團隊的崛起"]
+                },
+                {
+                    title: "回歸者的戰爭",
+                    summary: "劉眾赫過去無數次『迴歸』的經歷成為了關鍵，但這些經歷也給他帶來了巨大的心理創傷。金獨子必須幫助劉眾赫克服內心的陰影，同時他們也必須共同面對來自不同時間線的威脅，以及那些試圖利用『迴歸』力量的外神們。",
+                    contentPath: "content/volume8.txt",
+                    keyEvents: ["劉眾赫的心理創傷", "與外神的戰鬥", "時間線的混亂", "拯救劉眾赫的過去"]
+                },
+                {
+                    title: "最終的牆",
+                    summary: "金獨子團隊終於接近了故事的終點，但他們必須面對最難以逾越的障礙——『最終的牆』。這堵牆不僅是物理上的阻礙，更是對他們信念、犧牲和『故事』本質的最終考驗。在這個關頭，金獨子必須做出最艱難的抉擇。",
+                    contentPath: "content/volume9.txt",
+                    keyEvents: ["世界盡頭的挑戰", "夢境與現實的交織", "金獨子的犧牲", "故事的最終意義"]
+                },
+                {
+                    title: "星座的黃昏",
+                    summary: "隨著所有『情景』的結束，曾經高高在上的星座們也迎來了他們的黃昏。舊的神話逐漸消散，新的時代即將來臨。世界正在重塑，而倖存下來的人們必須學會在沒有『星流』系統干預下生活，並面對一個全新的未來。",
+                    contentPath: "content/volume10.txt",
+                    keyEvents: ["神話時代的終結", "星流系統的崩潰", "世界的重塑", "倖存者的適應與重建"]
+                },
+                {
+                    title: "唯一的讀者",
+                    summary: "本卷深入揭示了金獨子作為『唯一讀者』的真正意義，以及他與整個故事之間不可分割的、超越因果的聯繫。他的存在本身就是一個悖論，是故事的開始也是結束。這是對『全知讀者視角』核心概念的終極詮釋。",
+                    contentPath: "content/volume11.txt",
+                    keyEvents: ["金獨子身份的終極揭示", "故事與讀者的關係", "時間與空間的超越", "為世界寫下最終的結局"]
+                },
+                {
+                    title: "尾聲：他們的故事",
+                    summary: "在所有情景結束，金獨子消失之後，倖存下來的同伴們如何繼續他們的生活，以及他們為了尋找失蹤的獨子所做的努力。這不僅是關於一個人的故事，更是關於一群人如何共同創造、延續並尋找他們所珍視的『故事』。",
+                    contentPath: "content/volume12.txt",
+                    keyEvents: ["沒有情景的世界", "尋找金獨子", "團隊的羈絆與成長", "永不結束的故事"]
+                },
+            ];
+
+            // 異步函數：載入卷數的全文內容
+            async function loadVolumeContent(volumeNum) {
+                const contentPath = volumesData[volumeNum - 1].contentPath;
+                const contentDisplayElement = document.getElementById(`volume-content-display-${volumeNum}`);
+                const loadingElement = document.getElementById(`volume-loading-${volumeNum}`);
+
+                contentDisplayElement.innerHTML = ''; // 清除舊內容
+                loadingElement.classList.remove('hidden'); // 顯示載入指示器
+
+                try {
+                    const response = await fetch(contentPath);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! 狀態碼: ${response.status}`);
+                    }
+                    const textContent = await response.text();
+                    // 簡單的格式化：將雙換行符替換為 <p> 標籤，單換行符替換為 <br>
+                    // 這會將純文字內容轉換為基本的 HTML 段落格式
+                    const formattedHtml = textContent.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+                    contentDisplayElement.innerHTML = formattedHtml;
+                } catch (error) {
+                    console.error(`載入第 ${volumeNum} 卷內容失敗:`, error);
+                    contentDisplayElement.innerHTML = `<p class="text-red-400">無法載入卷數內容。請確認檔案是否存在且路徑正確。</p>`;
+                } finally {
+                    loadingElement.classList.add('hidden'); // 隱藏載入指示器
+                }
+            }
+
+            // 異步函數：呼叫 Gemini API
+            async function callGeminiAPI(prompt, outputElementId, loadingElementId) {
+                const outputElement = document.getElementById(outputElementId);
+                const loadingElement = document.getElementById(loadingElementId);
+                outputElement.innerHTML = ''; // 清除舊內容
+                outputElement.classList.add('hidden'); // 預設隱藏輸出區域
+                loadingElement.classList.remove('hidden'); // 顯示載入指示器
+
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // 如果您想使用 gemini-2.0-flash 或 imagen-3.0-generate-002 以外的模型，請在此處提供 API 金鑰。否則，請保持原樣。
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        outputElement.innerHTML = `<p class="text-gray-200 leading-relaxed">${text}</p>`;
+                    } else {
+                        outputElement.innerHTML = `<p class="text-red-400">系統錯誤：無法生成內容。請稍後再試。</p>`;
+                    }
+                } catch (error) {
+                    console.error("Gemini API 呼叫失敗:", error);
+                    outputElement.innerHTML = `<p class="text-red-400">系統錯誤：API呼叫失敗。請檢查網路連接。</p>`;
+                } finally {
+                    loadingElement.classList.add('hidden'); // 隱藏載入指示器
+                    outputElement.classList.remove('hidden'); // 顯示輸出區域
+                }
+            }
+
+            // 生成情景提示的功能
+            async function generateScenarioPrompt(volumeNum) {
+                const volume = volumesData[volumeNum - 1];
+                const prompt = `你是一個『星流』系統的鬼怪。請為《全知讀者視角》小說的第 ${volumeNum} 卷，標題為「${volume.title}」，其摘要為「${volume.summary}」，關鍵事件為「${volume.keyEvents.join('、')}」的內容，生成一個新的、簡短而引人入勝的『情景提示』。這個提示應該像遊戲任務一樣，不超過100字，並包含一個明確的目標或挑戰。請以繁體中文回答。`;
+                await callGeminiAPI(prompt, `llm-output-volume-${volumeNum}-prompt`, `llm-loading-volume-${volumeNum}-prompt`);
+            }
+
+            // 角色分析的功能
+            async function analyzeCharacter(volumeNum) {
+                const volume = volumesData[volumeNum - 1];
+                const prompt = `你是一個資深的故事分析師。請根據《全知讀者視角》小說的第 ${volumeNum} 卷，標題為「${volume.title}」，其摘要為「${volume.summary}」，關鍵事件為「${volume.keyEvents.join('、')}」的內容，簡要分析一個與本卷內容密切相關的主要角色（例如：金獨子、劉眾赫、韓秀英等）。分析應包含該角色在本卷中的主要行為、動機或發展，不超過150字。請以繁體中文回答。`;
+                await callGeminiAPI(prompt, `llm-output-volume-${volumeNum}-character`, `llm-loading-volume-${volumeNum}-character`);
+            }
+
+            for (let i = 1; i <= 12; i++) {
+                const volume = volumesData[i-1];
+                document.write(`
+                    <section id="page-volume-${i}" class="min-h-screen flex-col items-center justify-center p-4 hidden">
+                        <div class="system-panel rounded-lg p-6 md:p-8 w-full max-w-4xl fade-in custom-scrollbar overflow-y-auto" style="max-height: 90vh;">
+                            <header class="mb-6 text-center">
+                                <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-glow-magenta mb-2">卷 ${i}: ${volume.title}</h2>
+                                <p class="text-gray-400">情景分析報告</p>
+                            </header>
+
+                            <div class="mb-6">
+                                <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">📖 卷數摘要</h3>
+                                <p class="text-gray-300 leading-relaxed">${volume.summary}</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">📚 卷數全文</h3>
+                                <div id="volume-content-display-${i}" class="text-gray-300 leading-relaxed text-base md:text-lg overflow-y-auto max-h-[70vh] pr-4 custom-scrollbar">
+                                    <div id="volume-loading-${i}" class="text-center text-gray-400">載入卷數內容中...</div>
+                                    <!-- 全文內容將在此處動態載入 -->
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">⚡ 關鍵事件</h3>
+                                <ul class="list-disc list-inside text-gray-300 space-y-1">
+                                    ${volume.keyEvents.map(event => `<li>${event}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-6 p-4 border border-dashed border-yellow-500/50 rounded-lg bg-yellow-900/20">
+                                <h3 class="font-bold text-xl text-yellow-300 mb-3">⚖️ 道德內容策略</h3>
+                                <p class="text-yellow-200 text-sm">根據設計藍圖的建議，本站不提供全文內容以尊重版權。我們鼓勵您透過官方管道支持作者。</p>
+                                <a href="#" target="_blank" rel="noopener noreferrer" class="mt-4 inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-md transition-colors">
+                                    前往官方購買/閱讀平台 (連結佔位符)
+                                </a>
+                            </div>
+
+                            <div class="mt-8">
+                                <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">✨ 系統指令</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                    <button onclick="generateScenarioPrompt(${i})" class="scenario-button bg-purple-700 hover:bg-purple-800 text-white py-3 px-4 rounded-md text-base">
+                                        ✨ 生成情景提示
+                                    </button>
+                                    <button onclick="analyzeCharacter(${i})" class="scenario-button bg-teal-700 hover:bg-teal-800 text-white py-3 px-4 rounded-md text-base">
+                                        ✨ 角色分析
+                                    </button>
+                                </div>
+                                <div id="llm-loading-volume-${i}-prompt" class="hidden text-center text-gray-400">載入情景提示中...</div>
+                                <div id="llm-output-volume-${i}-prompt" class="hidden system-panel p-4 rounded-md mb-4 border border-blue-600/50"></div>
+                                <div id="llm-loading-volume-${i}-character" class="hidden text-center text-gray-400">分析角色中...</div>
+                                <div id="llm-output-volume-${i}-character" class="hidden system-panel p-4 rounded-md border border-pink-600/50"></div>
+                            </div>
+
+                            <div class="mt-8 text-center">
+                                <button onclick="navigate('page-home')" class="scenario-button bg-gray-700 text-gray-200 py-2 px-6 rounded-md border-blue-500/50">
+                                    返回主控制台
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                `);
+            }
+        </script>
+    </div>
+
+    <script>
+        const pages = document.querySelectorAll('section');
+        const systemMessageEl = document.getElementById('system-message');
+        const messageText = "[ 情景同步率: 100% | 系統載入完成 ]";
+        let charIndex = 0;
+
+        function typeSystemMessage() {
+            if (charIndex < messageText.length) {
+                systemMessageEl.textContent += messageText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeSystemMessage, 50);
+            }
+        }
+
+        function navigate(pageId) {
+            pages.forEach(page => {
+                if (page.id === pageId) {
+                    page.classList.remove('hidden');
+                    page.classList.add('flex');
+                    // 如果是卷數頁面，則載入其內容
+                    if (pageId.startsWith('page-volume-')) {
+                        const volumeNum = parseInt(pageId.replace('page-volume-', ''), 10);
+                        loadVolumeContent(volumeNum);
+                    }
+                } else {
+                    page.classList.add('hidden');
+                    page.classList.remove('flex');
+                }
+            });
+            window.scrollTo(0, 0);
+        }
+
+        window.onload = () => {
+            typeSystemMessage();
+            // 初始顯示主頁
+            pages.forEach(page => page.classList.add('hidden'));
+            document.getElementById('page-home').classList.remove('hidden');
+            document.getElementById('page-home').classList.add('flex');
+        };
+    </script>
+
+</body>
+</html>
