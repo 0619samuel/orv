@@ -452,21 +452,7 @@
                             
     
 
-                            <div class="mt-8">
-                                <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">✨ 系統指令</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                                    <button onclick="generateScenarioPrompt(${i})" class="scenario-button bg-purple-700 hover:bg-purple-800 text-white py-3 px-4 rounded-md text-base">
-                                        ✨ 生成情景提示
-                                    </button>
-                                    <button onclick="analyzeCharacter(${i})" class="scenario-button bg-teal-700 hover:bg-teal-800 text-white py-3 px-4 rounded-md text-base">
-                                        ✨ 角色分析
-                                    </button>
-                                </div>
-                                <div id="llm-loading-volume-${i}-prompt" class="hidden text-center text-gray-400">載入情景提示中...</div>
-                                <div id="llm-output-volume-${i}-prompt" class="hidden system-panel p-4 rounded-md mb-4 border border-blue-600/50"></div>
-                                <div id="llm-loading-volume-${i}-character" class="hidden text-center text-gray-400">分析角色中...</div>
-                                <div id="llm-output-volume-${i}-character" class="hidden system-panel p-4 rounded-md border border-pink-600/50"></div>
-                            </div>
+                            
 
                             <div class="mt-8 text-center">
                                 <button onclick="navigate('page-home')" class="scenario-button bg-gray-700 text-gray-200 py-2 px-6 rounded-md border-blue-500/50">
