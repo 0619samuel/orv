@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全知讀者視角 | 互動式體驗</title>
+    <title>全知讀者視角 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Starlight Indigo (深藍、黑、灰，配以發光的青色/品紅色點綴) -->
-    <!-- Application Structure Plan: 採用單頁應用程式(SPA)架構，透過JavaScript控制不同區塊(div)的顯示與隱藏，模擬無縫的頁面切換。主頁作為導航中心，提供通往十二個卷數的入口。每個卷數頁面將遵循報告的道德內容策略，提供摘要、分析及官方購買連結，而非侵權的全文，旨在創造一個尊重原作且具高可用性的使用者體驗。新增LLM功能，提供情景提示與角色分析，增強互動性與沉浸感。為解決檔案過大問題，小說全文內容將從與index.html同級的外部TXT檔案動態載入。 -->
-    <!-- Visualization & Content Choices: 報告的核心是文本分析與UI設計，因此本應用程式的重點是將這些概念視覺化。互動元素包括：1. 模擬「情景」入口的導航按鈕。2. 動態顯示的內容面板，呈現摘要與分析。3. 使用HTML/CSS建構的圖表來解釋報告中的核心概念（如道德內容策略）。新增LLM驅動的「情景提示」和「角色分析」功能，透過API呼叫生成相關文本內容，並顯示在專屬的面板中。小說全文內容將透過JavaScript的Fetch API從與index.html同級的外部TXT檔案動態載入。所有視覺元素均使用HTML/CSS和Unicode字符實現，以確保不使用SVG或Mermaid。 -->
+    <!-- Application Structure Plan: 採用單頁應用程式(SPA)架構，透過JavaScript控制不同區塊(div)的顯示與隱藏，模擬無縫的頁面切換。主頁作為導航中心，提供通往十二個卷數的入口。每個卷數頁面將遵循報告的道德內容策略，提供摘要、分析及官方購買連結，而非侵權的全文，旨在創造一個尊重原作且具高可用性的使用者體驗。新增LLM功能，提供情景提示與角色分析，增強互動性與沉浸感。為解決檔案過大問題，小說全文內容將從與index.html同級的外部TXT檔案動態載入。新增全文搜索功能，在主頁提供搜索框，搜索結果以片段形式展示，點擊可跳轉至對應卷數並高亮顯示搜索詞。 -->
+    <!-- Visualization & Content Choices: 報告的核心是文本分析與UI設計，因此本應用程式的重點是將這些概念視覺化。互動元素包括：1. 模擬「情景」入口的導航按鈕。2. 動態顯示的內容面板，呈現摘要與分析。3. 使用HTML/CSS建構的圖表來解釋報告中的核心概念（如道德內容策略）。新增LLM驅動的「情景提示」和「角色分析」功能，透過API呼叫生成相關文本內容，並顯示在專屬的面板中。小說全文內容將透過JavaScript的Fetch API從與index.html同級的外部TXT檔案動態載入。全文搜索功能將在前端JavaScript實現，搜索結果片段將動態生成並高亮顯示搜索詞。所有視覺元素均使用HTML/CSS和Unicode字符實現，以確保不使用SVG或Mermaid。 -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -66,6 +66,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1a202c; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4a5568; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #718096; }
+        .highlight {
+            background-color: #FFFF00; /* 亮黃色高亮 */
+            color: #0a0a1a; /* 高亮文字顏色 */
+            padding: 2px 0;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="overflow-x-hidden">
@@ -82,10 +88,10 @@
             <div class="system-panel rounded-lg p-6 md:p-8 w-full max-w-5xl">
                 <div class="text-center mb-6">
                     <p class="text-lg text-gray-200">歡迎，讀者。您的個人化「情景」即將開始。</p>
-                    <p class="text-sm text-gray-400">本互動式體驗旨在將設計藍圖中的核心概念具象化。請選擇一個卷數以繼續。</p>
+                    <p class="text-sm text-gray-400">請選擇一個卷數以繼續。</p>
                 </div>
                 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
                     <!-- Volume Buttons -->
                     <script>
                         for (let i = 1; i <= 12; i++) {
@@ -97,11 +103,27 @@
                         }
                     </script>
                 </div>
+
+                <!-- Search Section -->
+                <div class="mb-8 p-4 border border-blue-600/50 rounded-lg bg-gray-800/50">
+                    <h3 class="font-bold text-xl text-glow-cyan mb-3 border-b border-cyan-500/50 pb-2">🔍 全文搜索</h3>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="search-input" placeholder="輸入搜索關鍵字..." class="flex-grow p-3 rounded-md bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" onkeydown="if(event.key === 'Enter') performSearch()">
+                        <button onclick="performSearch()" class="scenario-button bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-md text-base">
+                            搜索
+                        </button>
+                    </div>
+                    <div id="search-loading" class="hidden text-center text-gray-400 mt-4">正在搜索中...</div>
+                    <div id="search-results-container" class="mt-4 max-h-60 overflow-y-auto custom-scrollbar">
+                        <!-- Search results will be displayed here -->
+                    </div>
+                </div>
+
             </div>
             
             <footer class="mt-8 text-center text-gray-500 text-xs">
-                <p>本網站為「設計藍圖」之互動式實踐，非官方網站。</p>
-                <p>所有內容均基於報告分析，並遵循其道德內容建議。</p>
+                <p>本小說內容由深空出版版權所有。</p>
+                <p>design by samuel lee</p>
             </footer>
         </section>
 
@@ -119,7 +141,7 @@
                     title: "王座的主人",
                     summary: "離開地鐵後，金獨子和他的新同伴們（包括劉眾赫、劉尚雅、李智慧等）面臨著爭奪『絕對王座』的挑戰。這個情景要求他們建立自己的據點並爭奪權力，與其他強大的化身和星座展開激烈的鬥爭。金獨子利用他對未來劇情的了解，巧妙地建立『金獨子工業』，並逐漸展露其獨特的生存方式。",
                     contentPath: "volume2.txt", // 指向第二卷全文的 TXT 檔案路徑 (在根目錄)
-                    keyEvents: ["忠武路站的據點戰", "爭奪絕對王座", "建立金獨子工業", "與李吉永、申喻勝相遇"]
+                    keyEvents: ["忠武路站的據點戰", "爭奪絕對王座", "建立金獨子工業", "與李吉永、申流承相遇"]
                 },
                 {
                     title: "和平之地",
@@ -183,8 +205,12 @@
                 },
             ];
 
+            // 用於儲存已載入卷數的純文字內容，以供搜索使用
+            const loadedVolumeRawContents = {};
+            let currentHighlightTerm = ''; // 用於儲存當前需要高亮的搜索詞
+
             // 異步函數：載入卷數的全文內容
-            async function loadVolumeContent(volumeNum) {
+            async function loadVolumeContent(volumeNum, searchTerm = '') {
                 const contentPath = volumesData[volumeNum - 1].contentPath;
                 const contentDisplayElement = document.getElementById(`volume-content-display-${volumeNum}`);
                 const loadingElement = document.getElementById(`volume-loading-${volumeNum}`);
@@ -193,21 +219,49 @@
                 loadingElement.classList.remove('hidden'); // 顯示載入指示器
 
                 try {
-                    const response = await fetch(contentPath);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! 狀態碼: ${response.status}`);
+                    let textContent;
+                    // 如果內容已經載入過，則直接從記憶體中獲取
+                    if (loadedVolumeRawContents[volumeNum]) {
+                        textContent = loadedVolumeRawContents[volumeNum];
+                    } else {
+                        const response = await fetch(contentPath);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! 狀態碼: ${response.status}`);
+                        }
+                        textContent = await response.text();
+                        loadedVolumeRawContents[volumeNum] = textContent; // 儲存原始文本
                     }
-                    const textContent = await response.text();
-                    // 簡單的格式化：將雙換行符替換為 <p> 標籤，單換行符替換為 <br>
-                    // 這會將純文字內容轉換為基本的 HTML 段落格式
-                    const formattedHtml = textContent.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+                    // 格式化並高亮顯示
+                    const formattedHtml = formatAndHighlightText(textContent, searchTerm);
                     contentDisplayElement.innerHTML = formattedHtml;
+
+                    // 如果有搜索詞，滾動到第一個高亮處
+                    if (searchTerm) {
+                        const firstHighlight = contentDisplayElement.querySelector('.highlight');
+                        if (firstHighlight) {
+                            firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+
                 } catch (error) {
                     console.error(`載入第 ${volumeNum} 卷內容失敗:`, error);
                     contentDisplayElement.innerHTML = `<p class="text-red-400">無法載入卷數內容。請確認檔案是否存在且路徑正確。</p>`;
                 } finally {
                     loadingElement.classList.add('hidden'); // 隱藏載入指示器
                 }
+            }
+
+            // 格式化並高亮文本的函數
+            function formatAndHighlightText(text, term) {
+                // 將雙換行符替換為 <p> 標籤，單換行符替換為 <br>
+                let htmlContent = text.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+                if (term) {
+                    const regex = new RegExp(term, 'gi'); // 全局、不區分大小寫
+                    htmlContent = htmlContent.replace(regex, match => `<span class="highlight">${match}</span>`);
+                }
+                return htmlContent;
             }
 
             // 異步函數：呼叫 Gemini API
@@ -261,6 +315,77 @@
                 const volume = volumesData[volumeNum - 1];
                 const prompt = `你是一個資深的故事分析師。請根據《全知讀者視角》小說的第 ${volumeNum} 卷，標題為「${volume.title}」，其摘要為「${volume.summary}」，關鍵事件為「${volume.keyEvents.join('、')}」的內容，簡要分析一個與本卷內容密切相關的主要角色（例如：金獨子、劉眾赫、韓秀英等）。分析應包含該角色在本卷中的主要行為、動機或發展，不超過150字。請以繁體中文回答。`;
                 await callGeminiAPI(prompt, `llm-output-volume-${volumeNum}-character`, `llm-loading-volume-${volumeNum}-character`);
+            }
+
+            // 全文搜索功能
+            async function performSearch() {
+                const searchTerm = document.getElementById('search-input').value.trim();
+                const searchResultsContainer = document.getElementById('search-results-container');
+                const searchLoading = document.getElementById('search-loading');
+                searchResultsContainer.innerHTML = ''; // 清除舊結果
+                currentHighlightTerm = searchTerm; // 儲存當前搜索詞
+
+                if (!searchTerm) {
+                    searchResultsContainer.innerHTML = '<p class="text-gray-400">請輸入搜索關鍵字。</p>';
+                    return;
+                }
+
+                searchLoading.classList.remove('hidden'); // 顯示載入指示器
+                let foundResults = false;
+
+                for (let i = 0; i < volumesData.length; i++) {
+                    const volumeNum = i + 1;
+                    const volumeTitle = volumesData[i].title;
+                    let volumeText;
+
+                    // 確保內容已載入
+                    if (loadedVolumeRawContents[volumeNum]) {
+                        volumeText = loadedVolumeRawContents[volumeNum];
+                    } else {
+                        // 如果未載入，則先載入
+                        try {
+                            const response = await fetch(volumesData[i].contentPath);
+                            if (!response.ok) continue; // 如果檔案不存在，跳過
+                            volumeText = await response.text();
+                            loadedVolumeRawContents[volumeNum] = volumeText;
+                        } catch (error) {
+                            console.warn(`無法載入第 ${volumeNum} 卷進行搜索:`, error);
+                            continue;
+                        }
+                    }
+
+                    // 執行搜索
+                    const regex = new RegExp(searchTerm, 'gi'); // 全局、不區分大小寫
+                    let match;
+                    let matchesCount = 0;
+                    const maxSnippets = 3; // 每卷最多顯示3個片段
+
+                    while ((match = regex.exec(volumeText)) !== null && matchesCount < maxSnippets) {
+                        foundResults = true;
+                        matchesCount++;
+                        const startIndex = Math.max(0, match.index - 50); // 往前50個字元
+                        const endIndex = Math.min(volumeText.length, match.index + searchTerm.length + 50); // 往後50個字元
+                        let snippet = volumeText.substring(startIndex, endIndex);
+
+                        // 高亮片段中的搜索詞
+                        snippet = snippet.replace(regex, `<span class="highlight">${match[0]}</span>`);
+
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'p-3 mb-2 bg-gray-700 rounded-md cursor-pointer hover:bg-gray-600 transition-colors';
+                        resultItem.innerHTML = `
+                            <h4 class="font-bold text-blue-300 mb-1">卷 ${volumeNum}: ${volumeTitle}</h4>
+                            <p class="text-sm text-gray-300">${snippet}...</p>
+                        `;
+                        resultItem.onclick = () => navigate(`page-volume-${volumeNum}`, searchTerm); // 點擊跳轉並高亮
+                        searchResultsContainer.appendChild(resultItem);
+                    }
+                }
+
+                searchLoading.classList.add('hidden'); // 隱藏載入指示器
+
+                if (!foundResults) {
+                    searchResultsContainer.innerHTML = `<p class="text-gray-400">未找到與「${searchTerm}」相關的內容。</p>`;
+                }
             }
 
             for (let i = 1; i <= 12; i++) {
@@ -343,15 +468,16 @@
             }
         }
 
-        function navigate(pageId) {
+        // 修改 navigate 函數，使其能接收搜索詞並傳遞給 loadVolumeContent
+        function navigate(pageId, searchTerm = '') {
             pages.forEach(page => {
                 if (page.id === pageId) {
                     page.classList.remove('hidden');
                     page.classList.add('flex');
-                    // 如果是卷數頁面，則載入其內容
+                    // 如果是卷數頁面，則載入其內容，並傳遞搜索詞
                     if (pageId.startsWith('page-volume-')) {
                         const volumeNum = parseInt(pageId.replace('page-volume-', ''), 10);
-                        loadVolumeContent(volumeNum);
+                        loadVolumeContent(volumeNum, searchTerm);
                     }
                 } else {
                     page.classList.add('hidden');
