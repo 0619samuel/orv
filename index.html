@@ -9,14 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Orbitron:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Starlight Indigo (深藍、黑、灰，配以發光的青色/品紅色點綴) -->
-    <!-- Application Structure Plan: 採用單頁應用程式(SPA)架構，透過JavaScript控制不同區塊(div)的顯示與隱藏，模擬無縫的頁面切換。主頁作為導航中心，提供通往十二個卷數的入口，按鈕現在以長方形書本封面形式呈現，嵌入實際封面圖片。每個卷數頁面將遵循報告的道德內容策略，提供摘要、分析及官方購買連結，而非侵權的全文，旨在創造一個尊重原作且具高可用性的使用者體驗。新增LLM功能，提供情景提示與角色分析，增強互動性與沉浸感。為解決小說全文檔案過大問題，小說全文內容將從與index.html同級的外部TXT檔案動態載入。新增全文搜索功能，在主頁提供搜索框，搜索結果以片段形式展示，點擊可跳轉至對應卷數並高亮顯示搜索詞。所有圖片（背景圖與封面圖）將使用直接URL嵌入，無需額外上傳圖片檔案。 -->
-    <!-- Visualization & Content Choices: 報告的核心是文本分析與UI設計，因此本應用程式的重點是將這些概念視覺化。互動元素包括：1. 模擬「情景」入口的導航按鈕，現在以書本封面形式呈現，嵌入直接圖片URL。2. 動態顯示的內容面板，呈現摘要與分析。3. 使用HTML/CSS建構的圖表來解釋報告中的核心概念（如道德內容策略）。新增LLM驅動的「情景提示」和「角色分析」功能，透過API呼叫生成相關文本內容，並顯示在專屬的面板中。小說全文內容將透過JavaScript的Fetch API從與index.html同級的外部TXT檔案動態載入。全文搜索功能將在前端JavaScript實現，搜索結果片段將動態生成並高亮顯示搜索詞。所有視覺元素均使用HTML/CSS和Unicode字符實現，以確保不使用SVG或Mermaid。 -->
+    <!-- Application Structure Plan: 採用單頁應用程式(SPA)架構，透過JavaScript控制不同區塊(div)的顯示與隱藏，模擬無縫的頁面切換。主頁作為導航中心，提供通往十二個卷數的入口，按鈕現在以長方形書本封面形式呈現，嵌入實際封面圖片。每個卷數頁面將遵循報告的道德內容策略，提供摘要、分析及官方購買連結，而非侵權的全文，旨在創造一個尊重原作且具高可用性的使用者體驗。新增LLM功能，提供情景提示與角色分析，增強互動性與沉浸感。為解決小說全文檔案過大問題，小說全文內容將從與index.html同級的外部TXT檔案動態載入。新增全文搜索功能，在主頁提供搜索框，搜索結果以片段形式展示，點擊可跳轉至對應卷數並高亮顯示搜索詞。所有圖片（背景圖與封面圖）將直接從GitHub儲存庫根目錄載入，因此需要您將圖片檔案上傳至GitHub。 -->
+    <!-- Visualization & Content Choices: 報告的核心是文本分析與UI設計，因此本應用程式的重點是將這些概念視覺化。互動元素包括：1. 模擬「情景」入口的導航按鈕，現在以書本封面形式呈現，嵌入GitHub託管的圖片。2. 動態顯示的內容面板，呈現摘要與分析。3. 使用HTML/CSS建構的圖表來解釋報告中的核心概念（如道德內容策略）。新增LLM驅動的「情景提示」和「角色分析」功能，透過API呼叫生成相關文本內容，並顯示在專屬的面板中。小說全文內容將透過JavaScript的Fetch API從與index.html同級的外部TXT檔案動態載入。全文搜索功能將在前端JavaScript實現，搜索結果片段將動態生成並高亮顯示搜索詞。所有視覺元素均使用HTML/CSS和Unicode字符實現，以確保不使用SVG或Mermaid。 -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            /* 背景圖片設置 - 使用您上傳的圖片URL */
-            background-image: url('http://googleusercontent.com/file_content/image.png-b79de9e5-0cc0-4b03-ba19-5bb251881279');
+            /* 背景圖片設置 - 請確保 IMG_1142.jpg 已上傳到 GitHub 根目錄 */
+            background-image: url('IMG_1142.jpg');
             background-size: cover; /* 覆蓋整個區域 */
             background-attachment: fixed; /* 滾動時固定 */
             background-position: center center; /* 圖片居中 */
@@ -108,18 +108,18 @@
                     <!-- Volume Buttons (with covers) -->
                     <script>
                         const volumesDataForButtons = [
-                            { title: "情景開始", imageUrl: "http://googleusercontent.com/file_content/image.png-eb7937de-8ffc-405b-b30f-25ecd54361ea" }, // 卷1 實際封面
-                            { title: "王座的主人", imageUrl: "http://googleusercontent.com/file_content/image.png-3334a8f3-0f8c-4274-a97e-bd6d788501c9" }, // 卷2 實際封面
-                            { title: "和平之地", imageUrl: "http://googleusercontent.com/file_content/image.png-f1cb2b96-5a95-4598-9565-63f8460f668d" }, // 卷3 實際封面
-                            { title: "未知的挑戰", imageUrl: "http://googleusercontent.com/file_content/image.png-5584ccc1-1d84-4257-99ee-48b96e66dc48" }, // 卷4 實際封面
-                            { title: "魔王選拔戰", imageUrl: "http://googleusercontent.com/file_content/image.png-6755a916-5354-4062-9d1c-ce1e397164c3" }, // 卷5 實際封面
-                            { title: "星流的秘密", imageUrl: "http://googleusercontent.com/file_content/image.png-164750d0-09aa-4a5e-96d3-d9546a9ee97a" }, // 卷6 實際封面
-                            { title: "巨型故事", imageUrl: "http://googleusercontent.com/file_content/image.png-ceda81de-13d8-4f54-93e7-1fcc820e92e7" }, // 卷7 實際封面
-                            { title: "回歸者的戰爭", imageUrl: "http://googleusercontent.com/file_content/image.png-f9e297db-9f64-439b-bdab-40f98073b46b" }, // 卷8 實際封面
-                            { title: "最終的牆", imageUrl: "http://googleusercontent.com/file_content/image.png-064438a5-38c8-4008-a40a-cf37f86e8934" }, // 卷9 實際封面
-                            { title: "星座的黃昏", imageUrl: "http://googleusercontent.com/file_content/image.png-84a1e906-3745-49f8-bd92-7d042e9927a8" }, // 卷10 實際封面
-                            { title: "唯一的讀者", imageUrl: "http://googleusercontent.com/file_content/image.png-76e3cbfc-9276-4719-8de8-638f1d201a2d" }, // 卷11 實際封面
-                            { title: "尾聲：他們的故事", imageUrl: "http://googleusercontent.com/file_content/image.png-a2c1cad6-a0fb-4e92-8b3e-8060c9b0e2ea" } // 卷12 實際封面
+                            { title: "情景開始", imageUrl: "IMG_1143.jpg" }, // 卷1 實際封面
+                            { title: "王座的主人", imageUrl: "IMG_1144.jpg" }, // 卷2 實際封面
+                            { title: "和平之地", imageUrl: "IMG_1145.jpg" }, // 卷3 實際封面
+                            { title: "未知的挑戰", imageUrl: "IMG_1146.jpg" }, // 卷4 實際封面
+                            { title: "魔王選拔戰", imageUrl: "IMG_1147.jpg" }, // 卷5 實際封面
+                            { title: "星流的秘密", imageUrl: "IMG_1148.jpg" }, // 卷6 實際封面
+                            { title: "巨型故事", imageUrl: "IMG_1149.jpg" }, // 卷7 實際封面
+                            { title: "回歸者的戰爭", imageUrl: "IMG_1150.jpg" }, // 卷8 實際封面
+                            { title: "最終的牆", imageUrl: "IMG_1151.jpg" }, // 卷9 實際封面
+                            { title: "星座的黃昏", imageUrl: "IMG_1152.jpg" }, // 卷10 實際封面
+                            { title: "唯一的讀者", imageUrl: "IMG_1153.jpg" }, // 卷11 實際封面
+                            { title: "尾聲：他們的故事", imageUrl: "IMG_1154.jpg" } // 卷12 實際封面
                         ];
 
                         volumesDataForButtons.forEach((volume, index) => {
